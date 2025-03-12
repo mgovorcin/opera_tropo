@@ -29,7 +29,7 @@ def pack_ztd(wet_ztd: np.ndarray, hydrostatic_ztd: np.ndarray,
     - ds (xarray.Dataset): Packaged ZTD data.
     """
 
-    dim = ["latitude", "longitude", "height"]
+    dim = ["height", "latitude", "longitude"]
     reference_time = model_time.astype('datetime64[s]').astype('O')[0]
     reference_time = reference_time.strftime('%Y-%m-%d %H:%M:%S')   
 
@@ -42,7 +42,7 @@ def pack_ztd(wet_ztd: np.ndarray, hydrostatic_ztd: np.ndarray,
     # Rounding
     if keep_bits:
         if TROPO_PRODUCTS.wet_delay.keep_bits:
-            round_mantissa(wet_ztd,
+            round_mantissa(wet_ztd.transpose(2, 0, 1),
                            keep_bits=int(TROPO_PRODUCTS.wet_delay.keep_bits))
         if TROPO_PRODUCTS.hydrostatic_delay.keep_bits:
             round_mantissa(hydrostatic_ztd,
@@ -50,7 +50,7 @@ def pack_ztd(wet_ztd: np.ndarray, hydrostatic_ztd: np.ndarray,
     
     ds = xr.Dataset(
         data_vars=dict(
-            wet_delay=(dim, wet_ztd,
+            wet_delay=(dim, wet_ztd.transpose(2, 0, 1),
                        TROPO_PRODUCTS.wet_delay.to_dict()),
             hydrostatic_delay=(dim, hydrostatic_ztd,
                                TROPO_PRODUCTS.hydrostatic_delay.to_dict()), 
