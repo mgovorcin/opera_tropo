@@ -131,6 +131,9 @@ def tropo(file_path: str,
         out_heights = None
 
     # Get output template
+    # NOTE: translate dim order to follow CF 1.8
+    # time, height, latitude, longitude 
+    # to be compliant with gdal
     template = pack_ztd(
         wet_ztd=out_size, 
         hydrostatic_ztd=out_size,

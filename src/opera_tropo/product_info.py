@@ -8,19 +8,23 @@ from dataclasses import dataclass, field
 import RAiDER
 
 GLOBAL_ATTRS = {
+    # http://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html#standard-name
     "Conventions": "CF-1.8",
-    "title": "OPERA Zenith Troposphere Delay",
-    "institution": "Jet Propulsion Laboratory (JPL)",
-    "contact" : 'ops@jpl.nasa.gov', 
-    "source": 'ECMWF, HRES model',
+    "title": "OPERA_L4_ZENITH_TROPO",
+    "institution": "NASA Jet Propulsion Laboratory (JPL)",
+    "contact" : "opera-sds-ops@jpl.nasa.gov", 
+    "source" : "ECMWF",
+    "platform" : "HRES Model",
     "mission_name": 'OPERA',
     "source_url": "https://www.ecmwf.int/en/forecasts/datasets/set-i",
     "references":   "https://raider.readthedocs.io/en/latest/", 
-    "description": ("OPERA One-way Tropospheric Zenith Delay, interpolate"
-                   " with DEM and multiple with -4pi/radar wavelength (2 way)"
-                   " to get the SAR correction"),
+    "description": "OPERA One-way Tropospheric Zenith Delay for Synthetic Aperture Radar",
+    "comment" : ("Intersect/interpolate"
+                 " with DEM and multiple with -4pi/radar wavelength (2 way)"
+                 " to get SAR correction"),
     "software": "RAiDER",
     "software_version": f"{RAiDER.__version__}",
+    # Audit trail. date/time 0f day/ user name/ program name/command arguments
     "history": f"Created on: {str(datetime.now(timezone.utc))}",
     }
 
@@ -48,10 +52,10 @@ class ProductCoords:
 class TropoCoordAttrs:
     latitude: ProductCoords = field(
         default_factory=lambda: ProductCoords(
-            axis="y",
+            axis="Y",
             units="degrees_north",
             standard_name="latitude",
-            long_name="latitude",
+            long_name="Latitude",
             description=("Angular distance of a point north or south"
                          " of the equator."),
             encoding={}
@@ -59,10 +63,10 @@ class TropoCoordAttrs:
     )
     longitude: ProductCoords = field(
         default_factory=lambda: ProductCoords(
-            axis="x",
+            axis="X",
             units="degrees_east",
             standard_name="longitude",
-            long_name="longitude",
+            long_name="Longitude",
             description=("Angular distance of a point east or west"
                          " of the Prime Meridian."),
             encoding={}
@@ -70,17 +74,17 @@ class TropoCoordAttrs:
     )
     height: ProductCoords = field(
         default_factory=lambda: ProductCoords(
-            axis="z",
-            units="m",
+            axis="Z",
+            units="meters",
             standard_name="height",
-            long_name="ellipsoidal_height",
+            long_name="Ellipsoidal Height",
             description="Height above ellipsoid WGS84",
             encoding={}
         )
     )
     time: ProductCoords = field(
         default_factory=lambda: ProductCoords(
-            axis="t",
+            axis="T",
             units=None, # units specified in encoding
             standard_name="time",
             long_name="UTC time",
@@ -105,6 +109,7 @@ class ProductInfo:
     name: str
     long_name: str
     description: str
+    positive: str
     fillvalue: DTypeLike
     dtype: DTypeLike
     attrs: dict[str, str] = field(default_factory=dict)
@@ -126,11 +131,12 @@ class TropoProducts:
     wet_delay: ProductInfo = field(
         default_factory=lambda: ProductInfo(
             name="wet_delay",
-            long_name="one way zenith wet delay",
+            long_name="Zenith Wet Delay",
             description=(
-                "Zenith Wet Delay."
+                "One-way Zenith Wet Delay."
             ),
             fillvalue=np.nan,
+            positive='down',
             # Note sure should I keep grid_mapping here
             attrs={"units": "meters",
                    "grid_mapping": "spatial_ref"},
@@ -144,11 +150,12 @@ class TropoProducts:
     hydrostatic_delay: ProductInfo = field(
         default_factory=lambda: ProductInfo(
             name="hydrostatic_delay",
-            long_name="one way zenith hydrostatic delay",
+            long_name="Zenith Hydrostatic Delay",
             description=(
-                "Zenith Wet Delay."
+                "One-way Zenith Wet Delay."
             ),
-            fillvalue=np.nan, 
+            fillvalue=np.nan,
+            positive='down', 
             # Note sure should I keep grid_mapping here
             attrs={"units": "meters",
                    "grid_mapping": "spatial_ref"},
