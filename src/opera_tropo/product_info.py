@@ -140,9 +140,9 @@ class TropoProducts:
             # Note sure should I keep grid_mapping here
             attrs={"units": "meters",
                    "grid_mapping": "spatial_ref"},
-            # 12 bits, for random values in meters from -1 to 1, has a max
-            # quantization error of about 0.06 millimeters
-            keep_bits=12,
+            # 10 bits, has a max quantization error of 
+            # about 0.1 millimeters
+            keep_bits=10,
             dtype=np.float32,
         )
     )
@@ -159,8 +159,8 @@ class TropoProducts:
             # Note sure should I keep grid_mapping here
             attrs={"units": "meters",
                    "grid_mapping": "spatial_ref"},
-            # 12 bits, for random values in meters from -1 to 1, has a max
-            # quantization error of about 0.06 millimeters
+            # 12 bits, has a max quantization error of 
+            # about 0.2 millimeters
             keep_bits=12,
             dtype=np.float32,
         )

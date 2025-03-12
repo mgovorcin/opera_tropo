@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+import shutil
 import psutil
 import logging
 import numpy as np
@@ -118,7 +119,6 @@ def tropo(file_path: str,
     cols = ds.sizes.get('latitude')
     rows = ds.sizes.get('longitude')
     
-    
     if out_heights is not None and len(out_heights) > 0:
         zlevels = np.array(out_heights)
     else:
@@ -183,3 +183,4 @@ def tropo(file_path: str,
     mem = process.memory_info().rss / 1e6
     logger.info(f"Mem usage {mem:.2f} GB") 
     client.close()
+    shutil.rmtree(temp_dir)

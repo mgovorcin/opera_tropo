@@ -33,7 +33,7 @@ def pack_ztd(wet_ztd: np.ndarray, hydrostatic_ztd: np.ndarray,
     reference_time = model_time.astype('datetime64[s]').astype('O')[0]
     reference_time = reference_time.strftime('%Y-%m-%d %H:%M:%S')   
 
-    #zenith_delay = hydrostatic_ztd + wet_ztd 
+    #total_zenith_delay = hydrostatic_ztd + wet_ztd 
     wet_ztd = wet_ztd.astype(TROPO_PRODUCTS.wet_delay.dtype)
     hydrostatic_ztd = hydrostatic_ztd.astype(TROPO_PRODUCTS.hydrostatic_delay.dtype) 
     
@@ -83,7 +83,7 @@ def pack_ztd(wet_ztd: np.ndarray, hydrostatic_ztd: np.ndarray,
 
     # Add chunks to data variables
     if chunk_size is not None:
-        for key in ["wet_delay", "hydrostatic_delay"]:#, "zenith_total_delay"]:
+        for key in ["wet_delay", "hydrostatic_delay"]:
             ds[key] = ds[key].chunk(chunk_size)
 
         # Ensure that chunking is applied to the entire dataset
