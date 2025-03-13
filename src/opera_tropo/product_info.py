@@ -15,9 +15,9 @@ GLOBAL_ATTRS = {
     "contact" : "opera-sds-ops@jpl.nasa.gov", 
     "source" : "ECMWF",
     "platform" : "HRES Model",
-    "mission_name": 'OPERA',
     "source_url": "https://www.ecmwf.int/en/forecasts/datasets/set-i",
-    "references":   "https://raider.readthedocs.io/en/latest/", 
+    "references":   "https://raider.readthedocs.io/en/latest/",
+    "mission_name": 'OPERA',
     "description": "OPERA One-way Tropospheric Zenith Delay for Synthetic Aperture Radar",
     "comment" : ("Intersect/interpolate"
                  " with DEM and multiple with -4pi/radar wavelength (2 way)"
@@ -109,7 +109,6 @@ class ProductInfo:
     name: str
     long_name: str
     description: str
-    positive: str
     fillvalue: DTypeLike
     dtype: DTypeLike
     attrs: dict[str, str] = field(default_factory=dict)
@@ -119,7 +118,7 @@ class ProductInfo:
         desc_dict = dict(
             standard_name=self.name,
             long_name=self.long_name,
-            description=self.description
+            description=self.description,
         )
         return self.attrs | desc_dict
 
@@ -135,8 +134,7 @@ class TropoProducts:
             description=(
                 "One-way Zenith Wet Delay."
             ),
-            fillvalue=np.nan,
-            positive='down',
+            fillvalue=np.nan, # 9.96921e+36
             # Note sure should I keep grid_mapping here
             attrs={"units": "meters",
                    "grid_mapping": "spatial_ref"},
@@ -154,8 +152,7 @@ class TropoProducts:
             description=(
                 "One-way Zenith Wet Delay."
             ),
-            fillvalue=np.nan,
-            positive='down', 
+            fillvalue=np.nan, # 9.96921e+36
             # Note sure should I keep grid_mapping here
             attrs={"units": "meters",
                    "grid_mapping": "spatial_ref"},

@@ -56,7 +56,11 @@ def pack_ztd(wet_ztd: np.ndarray, hydrostatic_ztd: np.ndarray,
                                TROPO_PRODUCTS.hydrostatic_delay.to_dict()), 
         ),
 
-        coords=dict(longitude=lons, latitude=lats, height=zs),
+        # normalizing longitudes to the range [-180, 180] from [0, 360]
+        # GDAL expects coordinates to be float64
+        coords=dict(longitude=(np.float64(lons) + 180) % 360 - 180, 
+                    latitude=np.float64(lats), 
+                    height=np.float64(zs)), 
         attrs=GLOBAL_ATTRS | {"reference_time": reference_time}
     )
 
