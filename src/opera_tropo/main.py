@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 logger = logging.getLogger(__name__)
 
 import RAiDER
+from RAiDER.logger import logger as raider_log
 
 from .run import tropo 
 from .utils import get_hres_datetime, get_max_memory_usage
@@ -35,9 +36,7 @@ def run(
 
     """
 
-    setup_logging(logger_name="RAiDER",  debug=debug, filename=cfg.log_file)
     setup_logging(logger_name="opera_tropo", debug=debug, filename=cfg.log_file)
-    setup_logging(logger_name="run", debug=debug, filename=cfg.log_file)    
 
     #Save the start for a metadata field
     #processing_start_datetime = datetime.now(timezone.utc)
@@ -45,7 +44,7 @@ def run(
     cfg.output_directory.mkdir(exist_ok=True, parents=True)
     
     # Change to work directory
-    logger.info(f'Work directory: {cfg.work_directory}')
+    logger.debug(f'Work directory: {cfg.work_directory}')
     os.chdir(cfg.work_directory)
     
     # Get output filename
@@ -67,8 +66,9 @@ def run(
          )
 
     # Remove RAIDER empty log files
-    for ix in ['debug.log', 'error.log', 'log.log']:
-        (Path(cfg.work_directory) / ix).unlink(missing_ok=True)
+    for handler in raider_log.handlers:
+        if isinstance(handler, logging.FileHandler):
+            Path(handler.baseFilename).unlink(missing_ok=True)
 
     # Generate output browse image
     logger.info(f"Output file: {Path(cfg.output_directory) / output_filename}")

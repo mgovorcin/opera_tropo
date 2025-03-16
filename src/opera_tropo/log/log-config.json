@@ -28,14 +28,14 @@
         },
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "level": "INFO",
+            "level": "DEBUG",
             "formatter": "json",
             "maxBytes": 10000000,
             "backupCount": 3
         }
     },
     "loggers": {
-        "opera-tropo": {
+        "opera_tropo": {
             "level": "INFO",
             "handlers": [
                 "stderr"

@@ -30,6 +30,8 @@ def setup_logging(*, logger_name: str = "opera_tropo", debug: bool = False, file
 
     if debug:
         config["loggers"][logger_name]["level"] = "DEBUG"
+        config["handlers"]["stderr"]["level"] = "DEBUG"
+        config["handlers"]["file"]["level"] = "DEBUG"
 
     if filename:
         if "file" not in config["loggers"][logger_name]["handlers"]:
@@ -42,7 +44,8 @@ def setup_logging(*, logger_name: str = "opera_tropo", debug: bool = False, file
 
     logging.config.dictConfig(config)
 
-def log_runtime(f: Callable[P, T]) -> Callable[P, T]:
+def log_runtime(f: Callable[P, T], debug: bool = True)-> Callable[P, T]:
+                #f: Callable[P, T]) -> Callable[P, T]:
     """Decorate a function to time how long it takes to run.
 
     Usage
@@ -68,7 +71,7 @@ def log_runtime(f: Callable[P, T]) -> Callable[P, T]:
             f"Total elapsed time for {f.__module__}.{f.__name__}: "
             f"{elapsed_minutes:.2f} minutes ({elapsed_seconds:.2f} seconds)"
         )   
-
+        
         logger.info(time_string)
 
         return result

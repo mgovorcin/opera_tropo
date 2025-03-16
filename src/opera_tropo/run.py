@@ -101,7 +101,7 @@ def tropo(
         memory_limit=max_memory,
         local_directory=temp_dir,
     )
-    logger.info(f'Dask server link: {client.dashboard_link}')
+    logger.debug(f'Dask server link: {client.dashboard_link}')
 
     # Open the dataset
     try:
@@ -116,7 +116,7 @@ def tropo(
     if pre_check: validate_input(ds)
 
     # Rechunk for parallel processing
-    logger.info(f"Rechunking {file_path}")
+    logger.debug(f"Rechunking {file_path}")
     chunks = {
         'longitude': block_size[1], 
         'latitude': block_size[0],
@@ -190,7 +190,7 @@ def tropo(
     encoding = {var: encoding for var in out_ds.data_vars}
     # Reoder longitude indexes to adjust for 0-360  transform to -180-180
     out_ds = out_ds.sortby("longitude")
-    logger.info(f'Saving file: {output_file}')
+    logger.debug(f'Saving file: {output_file}')
     out_ds.sel(height=slice(None, max_height)).to_netcdf(output_file, 
                                                          encoding=encoding, 
                                                          mode='w')
