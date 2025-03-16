@@ -12,6 +12,7 @@ from dask.distributed import Client
 from .log.loggin_setup import log_runtime 
 from .core import calculate_ztd
 from ._pack import pack_ztd
+from .checks import validate_input
 from .utils import round_mantissa_xr
 from .product_info import TROPO_PRODUCTS
 
@@ -21,6 +22,9 @@ except ImportError as e:
     print(f"RAiDER is not properly installed or accessible. Error: {e}")
 
 logger = logging.getLogger(__name__)
+
+BLOCK_SIZE = [128, 256] #lat, lon
+OUTPUT_CHUNKS =  [1, 8, 512, 512] # time, height, lat, lon
 
 def _rounding_mantissa_blocks(ds: xr.DataArray, keep_bits:int):
     """
@@ -37,52 +41,56 @@ def _rounding_mantissa_blocks(ds: xr.DataArray, keep_bits:int):
 
 
 @log_runtime
-def tropo(file_path: str,
-          output_file: str,
-          *,
-          out_heights: list = [],
-          lat_chunk_size: int = 128,
-          lon_chunk_size: int = 128,
-          num_workers: int = 1,
-          num_threads: int = 1,
-          max_memory: int = 4,  # GB
-          compression_options: dict = {},
-          temp_dir: str = None,
-          keep_bits: bool = True) -> None:
+def tropo(
+    file_path: str,
+    output_file: str,
+    *,
+    max_height: int = 81000,
+    out_heights: list[float] = None,
+    block_size: list[int] = BLOCK_SIZE,
+    out_chunk_size: list[int] = OUTPUT_CHUNKS,
+    num_workers: int = 4,
+    num_threads: int = 2,
+    max_memory: int | str = "16GB",
+    compression_options: dict = None,
+    temp_dir: str = None,
+    pre_check: bool = True,
+    keep_bits: bool = True,
+) -> None:
     """
-    Calculate TROPO delay and save the output to a NetCDF file.
+    Calculate tropospheric delay and save the output to a NetCDF file.
 
     Parameters:
     - file_path (str): Path to the input dataset file.
     - output_file (str): Path to the output NetCDF file.
-    - out_heights (list, optional): List of output heights. Default is an empty list.
-    - lat_chunk_size (int, optional): Chunk size for latitude dimension. Default is 128.
-    - lon_chunk_size (int, optional): Chunk size for longitude dimension. Default is 128.
-    - num_workers (int, optional): Number of Dask workers. Default is 1.
-    - num_threads (int, optional): Number of threads per Dask worker. Default is 1.
-    - max_memory (int, optional): Maximum memory limit for Dask workers. Default is 4 GB.
+    - max_height (int, optional): Maximum height in meters. Default is 81,000.
+    - out_heights (list[int], optional): List of output heights. Default is None (using model heights)
+    - block_size (list[int], optional): Block size for processing. Default is [128, 128].
+    - out_chunk_size (list[int], optional): Chunk size for output data. Default is [1, 8, 512, 512].
+    - num_workers (int, optional): Number of parallel workers. Default is 4.
+    - num_threads (int, optional): Number of threads per worker. Default is 2.
+    - max_memory (int | str, optional): Maximum memory allocation (e.g., '8GB'). Default is '8GB'.
     - compression_options (dict, optional): Compression options for the output NetCDF file. Default is None.
-    - temp_dir (str, optional): Temporary directory for Dask intermediate files. Default is None.
-    - keep_bits (bool, optional): Flag to indicate whether to keep the bits. Default is True.
+    - temp_dir (str, optional): Directory for temporary files. Default is None.
+    - pre_check (bool, optional): Whether to perform pre-check of input data. Default is True.
+    - keep_bits (bool, optional): Whether to preserve bit depth in the output. Default is True.
 
     Returns:
     - None
 
     Raises:
-    - ValueError: If the input dataset file cannot be opened.
-
+    - ValueError: If the input dataset file cannot be opened or processed.
     """
     process = psutil.Process()
     logger.info("Calculating TROPO delay")    
     # Set default compression options if not provided
-    compression_defaults = {
+    encoding_defaults = {
         "zlib": True,
-        "compression_flag": False,
         "complevel": 4,
-        "shuffle": True
+        "shuffle": True,
+        "chunksizes": out_chunk_size,
     }
-    compression_options = {**compression_defaults, **compression_options}
-    compress = compression_options.pop("compression_flag")
+    encoding = {**encoding_defaults, **compression_options}
     
     # Setup Dask Client and temp. directory
     if temp_dir:
@@ -91,30 +99,36 @@ def tropo(file_path: str,
     client = Client(
         n_workers=num_workers,
         threads_per_worker=num_threads,
-        memory_limit=f"{max_memory}GB",
+        memory_limit=max_memory,
         local_directory=temp_dir,
     )
     logger.info(f'Dask server link: {client.dashboard_link}')
 
     # Open the dataset
     try:
-        ds = xr.open_dataset(file_path)
+        ds = xr.open_dataset(file_path, chunks={'level':-1})
     except Exception as e:
         raise ValueError(f"Failed to open the dataset file: {file_path}."
-                          "Ensure the file exists and is a valid dataset."
+                          "Make sure the file exists and is a valid dataset."
                           "Original error: {e}") 
-    
-    # Rechunk
-    if not ds.chunks:
-        logger.info(f"Rechunking {file_path}")
-        chunks = {
-            'longitude': lon_chunk_size, 
-            'latitude': lat_chunk_size,
-            'time': 1, 
-            'level': len(A_137_HRES) - 1
-        }
-        ds = ds.chunk(chunks) 
 
+    # Validate input, check valid range, 
+    #  nan values and exp. var and coords
+    if pre_check: validate_input(ds)
+
+    # Rechunk for parallel processing
+    logger.info(f"Rechunking {file_path}")
+    chunks = {
+        'longitude': block_size[1], 
+        'latitude': block_size[0],
+        'time': 1, 
+        'level': len(A_137_HRES) - 1
+    }
+    ds = ds.chunk(chunks)
+
+    chunksizes = {key: value[0] for key, value in ds.chunksizes.items()}
+    logger.info(f'Chunk sizes: {chunksizes}')
+    
     # Get output size
     cols = ds.sizes.get('latitude')
     rows = ds.sizes.get('longitude')
@@ -123,17 +137,15 @@ def tropo(file_path: str,
         zlevels = np.array(out_heights)
     else:
         zlevels = np.flipud(LEVELS_137_HEIGHTS)
+
     out_size = np.empty((cols, rows, len(zlevels)),
-                        dtype=np.float32)
+                         dtype=np.float32)
     
     # To skip interpolation if out_heights are same as default
     if np.array_equal(out_heights, np.flipud(LEVELS_137_HEIGHTS)):
         out_heights = None
 
     # Get output template
-    # NOTE: translate dim order to follow CF 1.8
-    # time, height, latitude, longitude 
-    # to be compliant with gdal
     template = pack_ztd(
         wet_ztd=out_size, 
         hydrostatic_ztd=out_size,
@@ -141,8 +153,8 @@ def tropo(file_path: str,
         lats=ds.latitude.values,
         zs=zlevels, 
         model_time=ds.time.values,
-        chunk_size={"longitude": lat_chunk_size,
-                    "latitude": lon_chunk_size,
+        chunk_size={"longitude": int(chunksizes['longitude']),
+                    "latitude": int(chunksizes['latitude']),
                     "height": -1, "time": 1},
         keep_bits=False)
 
@@ -162,6 +174,7 @@ def tropo(file_path: str,
     logger.info(f"Mem usage {mem:.2f} GB")
 
     # Clean up
+    ds.close()
     del template, ds 
 
     # Note, apply again rounding as interpolation can change
@@ -175,9 +188,14 @@ def tropo(file_path: str,
     
     # Save and compress output
     t1 = time.time()
-    msg = 'and Compressing' if compress else ''
-    encoding = {var: compression_options if compress else {} for var in out_ds.data_vars}
-    out_ds.to_netcdf(output_file, encoding=encoding, mode='w')
+    msg = 'and Compressing' if encoding['zlib'] else ''
+    encoding = {var: encoding for var in out_ds.data_vars}
+    # Sort by longitude to reorder transformation from 0-360 to -180-180
+    out_ds = out_ds.sortby("longitude")
+    logger.info(f'Saving file: {output_file}')
+    out_ds.sel(height=slice(None, max_height)).to_netcdf(output_file, 
+                                                         encoding=encoding, 
+                                                         mode='w')
     t2 = time.time()
     logger.info(f"Saving {msg} took {t2 - t1:.2f} seconds.")
     mem = process.memory_info().rss / 1e6

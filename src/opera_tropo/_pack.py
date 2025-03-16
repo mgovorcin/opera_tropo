@@ -35,14 +35,13 @@ def pack_ztd(wet_ztd: np.ndarray, hydrostatic_ztd: np.ndarray,
 
     #total_zenith_delay = hydrostatic_ztd + wet_ztd 
     wet_ztd = wet_ztd.astype(TROPO_PRODUCTS.wet_delay.dtype)
-    hydrostatic_ztd = hydrostatic_ztd.astype(TROPO_PRODUCTS.hydrostatic_delay.dtype) 
-    
-    zs = zs.astype('float32')
+    hydrostatic_ztd = hydrostatic_ztd.astype(TROPO_PRODUCTS.hydrostatic_delay.dtype)  
+    zs = zs.astype('float64')
 
     # Rounding
     if keep_bits:
         if TROPO_PRODUCTS.wet_delay.keep_bits:
-            round_mantissa(wet_ztd.transpose(2, 0, 1),
+            round_mantissa(wet_ztd,
                            keep_bits=int(TROPO_PRODUCTS.wet_delay.keep_bits))
         if TROPO_PRODUCTS.hydrostatic_delay.keep_bits:
             round_mantissa(hydrostatic_ztd,
@@ -52,15 +51,15 @@ def pack_ztd(wet_ztd: np.ndarray, hydrostatic_ztd: np.ndarray,
         data_vars=dict(
             wet_delay=(dim, wet_ztd.transpose(2, 0, 1),
                        TROPO_PRODUCTS.wet_delay.to_dict()),
-            hydrostatic_delay=(dim, hydrostatic_ztd,
+            hydrostatic_delay=(dim, hydrostatic_ztd.transpose(2, 0, 1),
                                TROPO_PRODUCTS.hydrostatic_delay.to_dict()), 
         ),
 
         # normalizing longitudes to the range [-180, 180] from [0, 360]
         # GDAL expects coordinates to be float64
-        coords=dict(longitude=(np.float64(lons) + 180) % 360 - 180, 
-                    latitude=np.float64(lats), 
-                    height=np.float64(zs)), 
+        coords=dict(height=zs,
+                    latitude=np.float64(lats),
+                    longitude=(np.float64(lons) + 180) % 360 - 180), 
         attrs=GLOBAL_ATTRS | {"reference_time": reference_time}
     )
 

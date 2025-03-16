@@ -43,17 +43,22 @@ def run(
     #processing_start_datetime = datetime.now(timezone.utc)
     cfg.work_directory.mkdir(exist_ok=True, parents=True)
     cfg.output_directory.mkdir(exist_ok=True, parents=True)
+    
+    # Remove RAIDER empty log files
+    for ix in ['debug.log', 'error.log', 'log.log']:
+        (Path(cfg.work_directory) / ix).unlink(missing_ok=True)
 
     # Get output filename
     hres_date, hres_hour = get_hres_datetime(cfg.input_options.input_file_path)
     output_filename = cfg.output_options.get_output_filename(hres_date, hres_hour)
 
-    # Run dolphin's displacement workflow
+    # Run troposphere workflow
     tropo(file_path = cfg.input_options.input_file_path,
           output_file = Path(cfg.output_directory) / output_filename,
+          max_height= cfg.output_options.max_height, 
           out_heights = cfg.output_options.output_heights,
-          lat_chunk_size = cfg.worker_settings.block_shape[0],
-          lon_chunk_size = cfg.worker_settings.block_shape[1],
+          out_chunk_size = cfg.output_options.chunk_size,
+          block_size = cfg.worker_settings.block_shape,
           num_workers = cfg.worker_settings.n_workers,
           num_threads = cfg.worker_settings.threads_per_worker,
           max_memory = cfg.worker_settings.max_memory,

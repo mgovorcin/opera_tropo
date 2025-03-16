@@ -9,33 +9,6 @@ from .runconfig import  (WorkerSettings,
                          OutputOptions, 
                          TropoWorkflow)
 
-'''
-# Note add options here to download file
-class InputFileGroup(YamlModel):
-    """Inputs for A group of input files."""
-
-    input_file_path: str = Field(
-        default_factory=str,
-        description="Path to HRES model file.",
-    )
-
-    model_date: str = Field(
-        default_factory=str,
-        description="HRES model date. eg 20190101.",
-    )
-
-    model_hour: str = Field(
-        default_factory=str,
-        description="HRES model hour. eg 06",
-    )
-
-    s3_bucket: str = Field(
-        default_factory=str,
-        description="HRES model s3 bucket.",
-    )
-
-    model_config = ConfigDict(extra="forbid")
-'''
 class PrimaryExecutable(YamlModel):
     """Group describing the primary executable."""
 

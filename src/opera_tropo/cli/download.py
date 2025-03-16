@@ -14,7 +14,7 @@ click.option = functools.partial(click.option, show_default=True)
     default=Path.cwd(),
     help="Directory to save downloaded files",
 )
-@click.option("--s3_bucket", 
+@click.option("--s3-bucket", 
                 "-s3", 
                 type=str, 
                 help="s3 bucket")
@@ -23,14 +23,9 @@ click.option = functools.partial(click.option, show_default=True)
                 help="Model date YYYYMMDD, eg. 20190101")
 @click.option("--hour", 
                 type=click.Choice([v for v in HRES_HOURS]), 
-                help="Model hour, eg. 00")
-@click.option("--region", 
-                type=str, 
-                default='us-west-2',
-                help="Amazon s3 region")
+                help="Model hour")
 def download(output_dir: Path, s3_bucket: str, 
-             date: str, hour: str, version: int = 1,
-             region: str = 'us-west-2') -> None:
+             date: str, hour: str, version: int = 1) -> None:
     """Download the HRES model from s3 bucket"""
     # rest of imports here so --help doesn't take forever
     from opera_tropo.download import HRESConfig, download_hres
@@ -39,6 +34,5 @@ def download(output_dir: Path, s3_bucket: str,
                       date,
                       hour,
                       version,
-                      s3_bucket,
-                      region)
+                      s3_bucket)
     download_hres(hres)

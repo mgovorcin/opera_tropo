@@ -14,7 +14,9 @@ GLOBAL_ATTRS = {
     "institution": "NASA Jet Propulsion Laboratory (JPL)",
     "contact" : "opera-sds-ops@jpl.nasa.gov", 
     "source" : "ECMWF",
-    "platform" : "HRES Model",
+    "platform" : "Model High Resolution 15-day Forecast (HRES)",
+    "spatial_resolution" : "0.1deg (~9km)",
+    "temporal_resolution" : "6h",
     "source_url": "https://www.ecmwf.int/en/forecasts/datasets/set-i",
     "references":   "https://raider.readthedocs.io/en/latest/",
     "mission_name": 'OPERA',
@@ -110,6 +112,7 @@ class ProductInfo:
     long_name: str
     description: str
     fillvalue: DTypeLike
+    missing_value: DTypeLike 
     dtype: DTypeLike
     attrs: dict[str, str] = field(default_factory=dict)
     keep_bits: int | None = None
@@ -125,7 +128,14 @@ class ProductInfo:
 
 @dataclass
 class TropoProducts:
-    """Container for tropo product dataset info."""
+    """
+    Container for tropo product dataset info.
+    
+    NOTE: Zhenhong et al 2021 found constant difference between
+    HRES and GPS ZTD on a order  of 1-3 cm, global mean 1.54 cm
+    https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2020EA001417
+
+    """
 
     wet_delay: ProductInfo = field(
         default_factory=lambda: ProductInfo(
@@ -135,6 +145,7 @@ class TropoProducts:
                 "One-way Zenith Wet Delay."
             ),
             fillvalue=np.nan, # 9.96921e+36
+            missing_value=np.nan,# 9.96921e+36 
             # Note sure should I keep grid_mapping here
             attrs={"units": "meters",
                    "grid_mapping": "spatial_ref"},
@@ -153,6 +164,7 @@ class TropoProducts:
                 "One-way Zenith Wet Delay."
             ),
             fillvalue=np.nan, # 9.96921e+36
+            missing_value=np.nan,# 9.96921e+36 
             # Note sure should I keep grid_mapping here
             attrs={"units": "meters",
                    "grid_mapping": "spatial_ref"},
