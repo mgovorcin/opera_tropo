@@ -30,8 +30,8 @@ Homepage = "https://github.com/opera-adt/tropo"
 [project.scripts]
 opera_tropo = "opera_tropo.cli:cli_app"
 
-[tool.setuptools.dynamic]
-dependencies = { file = ["requirements.txt"] }
+#[tool.setuptools.dynamic]
+#dependencies = { file = ["requirements.txt"] }
 
 # extra requirements: `pip install tropo[docs]` or `pip install .[docs]`
 [tool.setuptools.dynamic.optional-dependencies.test]
@@ -84,7 +84,7 @@ ignore = [
 "tests/**" = ["D", "N", "PTH"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 ignore_missing_imports = true
 plugins = ["pydantic.mypy"]
 

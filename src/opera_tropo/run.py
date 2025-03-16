@@ -40,7 +40,6 @@ def _rounding_mantissa_blocks(ds: xr.DataArray, keep_bits:int):
     return ds.map(round_mantissa_xr, keep_bits=keep_bits)
 
 
-@log_runtime
 def tropo(
     file_path: str,
     output_file: str,
@@ -127,7 +126,7 @@ def tropo(
     ds = ds.chunk(chunks)
 
     chunksizes = {key: value[0] for key, value in ds.chunksizes.items()}
-    logger.info(f'Chunk sizes: {chunksizes}')
+    logger.debug(f'Chunk sizes: {chunksizes}')
     
     # Get output size
     cols = ds.sizes.get('latitude')
@@ -162,16 +161,15 @@ def tropo(
     # NOTE: Peak in RAM is 40GB after ingesting map_block output
     # with default 145 height level, specifying out_heights can
     # lower mem usage 
-    mem = process.memory_info().rss / 1e6 
-    logger.info(f"Estimating ZTD delay, mem usage {mem:.2f} GB")
+    mem = process.memory_info().rss / 1e9
+    logger.info(f"Estimating ZTD delay, mem: {mem:.2f}GB")
     t1 = time.time()
     out_ds = ds.map_blocks(calculate_ztd,
                 kwargs={'out_heights': out_heights}, 
                         template=template).compute()
     t2 = time.time()
-    mem = process.memory_info().rss / 1e6 
-    logger.info(f"ZTD calculation took {t2 - t1:.2f} seconds.")
-    logger.info(f"Mem usage {mem:.2f} GB")
+    mem = process.memory_info().rss / 1e9
+    logger.info(f"ZTD took {t2 - t1:.2f}s, mem: {mem:.2f}GB")
 
     # Clean up
     ds.close()
@@ -190,15 +188,14 @@ def tropo(
     t1 = time.time()
     msg = 'and Compressing' if encoding['zlib'] else ''
     encoding = {var: encoding for var in out_ds.data_vars}
-    # Sort by longitude to reorder transformation from 0-360 to -180-180
+    # Reoder longitude indexes to adjust for 0-360  transform to -180-180
     out_ds = out_ds.sortby("longitude")
     logger.info(f'Saving file: {output_file}')
     out_ds.sel(height=slice(None, max_height)).to_netcdf(output_file, 
                                                          encoding=encoding, 
                                                          mode='w')
     t2 = time.time()
-    logger.info(f"Saving {msg} took {t2 - t1:.2f} seconds.")
-    mem = process.memory_info().rss / 1e6
-    logger.info(f"Mem usage {mem:.2f} GB") 
+    mem = process.memory_info().rss / 1e9
+    logger.info(f"Saving {msg} took {t2 - t1:.2f}s, mem: {mem:.2f}GB")
     client.close()
     shutil.rmtree(temp_dir)
