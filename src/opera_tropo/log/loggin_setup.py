@@ -72,7 +72,7 @@ def log_runtime(f: Callable[P, T], debug: bool = True)-> Callable[P, T]:
             f"{elapsed_minutes:.2f} minutes ({elapsed_seconds:.2f} seconds)"
         )   
         
-        logger.info(time_string)
+        logger.debug(time_string)
 
         return result
 
