@@ -1,13 +1,6 @@
 name: Pytest
 
-on:
-  workflow_dispatch:
-    push:
-      branches:
-        - '*'  # This will trigger the action on all branches
-    pull_request:
-      branches:
-        - '*'  # This will trigger the action on all pull requests
+on: [pull_request, push]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
