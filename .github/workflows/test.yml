@@ -32,7 +32,7 @@ jobs:
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: opera_tropo
-          environment-file: environment.yml
+          environment-file: conda-env.yml
           create-args: >-
             python=${{ matrix.python-version }}
 
