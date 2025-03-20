@@ -27,13 +27,9 @@ jobs:
         with:
           environment-name: opera_tropo
           environment-file: conda-env.yml
+          generate-run-shell: true
           create-args: >-
             python=${{ matrix.python-version }}
-
-      - name: Initialize micromamba shell
-        run: |
-          echo "Initializing micromamba shell"
-          eval "$(micromamba shell hook --shell bash)"  # Initialize the shell for micromamba
 
       - name: Install dependencies
         run: |
