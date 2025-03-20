@@ -39,5 +39,6 @@ jobs:
 
       - name: Run tests with Pytest
         run: |
+          eval "$(micromamba shell hook --shell bash)"
           micromamba activate opera_tropo
           pytest . --maxfail=1 --disable-warnings -v
