@@ -37,6 +37,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          eval "$(micromamba shell hook --shell bash)"
           micromamba activate opera_tropo
           python -m pip install --no-deps .
 
