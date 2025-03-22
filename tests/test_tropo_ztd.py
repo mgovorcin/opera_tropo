@@ -3,7 +3,7 @@ from numpy.testing import assert_allclose
 
 from opera_tropo.core import calculate_ztd
 from opera_tropo.product_info import TropoProducts
-from opera_tropo.run import _rounding_mantissa_blocks
+from opera_tropo.utility import rounding_mantissa_blocks
 
 
 def test_wet_delay(load_input_model, load_golden_output):
@@ -19,7 +19,7 @@ def test_wet_delay(load_input_model, load_golden_output):
 
     # Take into account manitissa rounding
     keep_bits = TropoProducts().wet_delay.keep_bits
-    golden_out = _rounding_mantissa_blocks(
+    golden_out = rounding_mantissa_blocks(
         golden_out.astype(np.float32), keep_bits=int(keep_bits)
     )
 
@@ -39,7 +39,7 @@ def test_hydrostatic_delay(load_input_model, load_golden_output):
 
     # Take into account manitissa rounding
     keep_bits = TropoProducts().hydrostatic_delay.keep_bits
-    golden_out = _rounding_mantissa_blocks(
+    golden_out = rounding_mantissa_blocks(
         golden_out.astype(np.float32), keep_bits=int(keep_bits)
     )
 
