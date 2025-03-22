@@ -37,6 +37,7 @@ def run(
         Default is False.
 
     """
+    # NOTE: figure how to redirct dask and RAiDER streams to logfile
     setup_logging(
         logger_name="opera_tropo", debug=debug, filename=str(cfg.log_file)
     )  # type: ignore
@@ -80,7 +81,6 @@ def run(
     output_png = output_png.with_suffix(".png")
     make_browse_image_from_nc(output_png, Path(cfg.output_directory) / output_filename)
     logger.info(f" Output browse image: {output_png}")
-
 
     logger.info(f"Product type: {pge_runconfig.primary_executable.product_type}")
     logger.info(f"Product version: {pge_runconfig.product_path_group.product_version}")

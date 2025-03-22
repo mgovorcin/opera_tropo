@@ -163,8 +163,8 @@ def tropo(
     )
 
     # Calculate ZTD
-    model_time_str = ds.time.dt.strftime("%Y%m%dT%H").values
-    logger.info(f"Estimating ZTD delay for {model_time_str}")
+    model_time_str = ds.time.dt.strftime("%Y%m%dT%H").values[0]
+    logger.info(f"Estimating ZTD delay for {model_time_str}.")
     out_ds = ds.map_blocks(
         calculate_ztd, kwargs={"out_heights": out_heights}, template=template
     )
@@ -184,7 +184,7 @@ def tropo(
         output_file, encoding=encoding, mode="w"
     )
     # Close dask Client and remove dask temp. spill directory
-    logger.debug("Closing dask server.")
+    logger.debug(f"Closing dask server: {client.scheduler.address}.")
     client.close()
     logger.debug(f"Removing dask tmp dir: {temp_dir}")
     shutil.rmtree(str(temp_dir))
