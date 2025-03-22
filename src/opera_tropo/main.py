@@ -78,8 +78,9 @@ def run(
     logger.info(f" Output file: {Path(cfg.output_directory) / output_filename}")
     output_png = Path(cfg.output_directory) / output_filename
     output_png = output_png.with_suffix(".png")
-    logger.info(f" Output browse image: {output_png}")
     make_browse_image_from_nc(output_png, Path(cfg.output_directory) / output_filename)
+    logger.info(f" Output browse image: {output_png}")
+
 
     logger.info(f"Product type: {pge_runconfig.primary_executable.product_type}")
     logger.info(f"Product version: {pge_runconfig.product_path_group.product_version}")
