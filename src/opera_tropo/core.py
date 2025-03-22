@@ -104,6 +104,7 @@ def get_ztd(
 
     return out_ds
 
+
 @log_runtime
 def calculate_ztd(
     ds: xr.Dataset,
@@ -157,8 +158,8 @@ def calculate_ztd(
     if out_heights is not None:
         ztd_ds = ztd_ds.interp(height=out_heights, method="cubic")
 
-   # Package and round results using `pack_ztd` using
-   # product_info.TropoProducts
+    # Package and round results using `pack_ztd` using
+    # product_info.TropoProducts
     ztd_ds = pack_ztd(
         wet_ztd=ztd_ds.wet_ztd.values,
         hydrostatic_ztd=ztd_ds.hydrostatic_ztd.values,

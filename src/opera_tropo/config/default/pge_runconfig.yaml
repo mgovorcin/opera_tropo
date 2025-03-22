@@ -35,7 +35,7 @@ worker_settings:
   threads_per_worker: 2
   # Max memory to use per worker in GB.
   #   Type: integer.
-  max_memory: 8GB 
+  max_memory: 8GB
   # Size (rows, columns) of blocks of data to load at a time.
   #   Type: array.
   block_shape:

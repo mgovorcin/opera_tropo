@@ -22,9 +22,7 @@ except ImportError as e:
 logger = logging.getLogger(__name__)
 
 BLOCK_SIZE = [128, 256]  # lat, lon
-DEFAULT_COMPRESSION = {"zlib": True,
-                       "complevel": 4,
-                       "shuffle": True}
+DEFAULT_COMPRESSION = {"zlib": True, "complevel": 4, "shuffle": True}
 OUTPUT_CHUNKS = [1, 8, 512, 512]  # time, height, lat, lon
 
 
@@ -168,7 +166,7 @@ def tropo(
     model_time_str = ds.time.dt.strftime("%Y%m%dT%H").values
     logger.info(f"Estimating ZTD delay for {model_time_str}")
     out_ds = ds.map_blocks(
-        calculate_ztd, kwargs={"out_heights": out_heights},template=template
+        calculate_ztd, kwargs={"out_heights": out_heights}, template=template
     )
 
     # Define output encoding: compression and chunk size
@@ -177,8 +175,9 @@ def tropo(
     # Reorder longitude indexes to adjust for 0-360  transform to -180-180
     out_ds = out_ds.sortby("longitude")
     logger.debug(f"Output file: {output_file}")
-    logger.debug(("Output chunksize (time, height, latitude, longitude):"
-                  f" {out_chunk_size}"))
+    logger.debug(
+        f"Output chunksize (time, height, latitude, longitude): {out_chunk_size}"
+    )
 
     # Save output to local file
     out_ds.sel(height=slice(None, max_height)).to_netcdf(

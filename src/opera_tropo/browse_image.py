@@ -26,6 +26,7 @@ Filename = PathOrStr
 # Logger setup
 logger = logging.getLogger(__name__)
 
+
 def _resize_to_max_pixel_dim(arr: ArrayLike, max_dim_allowed=2048) -> np.ndarray:
     """Scale shape of a given array."""
     if max_dim_allowed < 1:
@@ -43,7 +44,7 @@ def _save_to_disk_as_color(
     arr: ArrayLike, fname: Filename, colormap: str, vmin: float, vmax: float
 ) -> None:
     """Save image array as color to file."""
-    colormap = cmap.Colormap(colormap).to_mpl() # get matplotlib cmap
+    colormap = cmap.Colormap(colormap).to_mpl()  # get matplotlib cmap
     plt.imsave(fname, arr, cmap=colormap, vmin=vmin, vmax=vmax)
 
 
@@ -78,6 +79,8 @@ def make_browse_image_from_nc(
         )
     # Get total zenith tropo delay
     ztd = wet + hydrostatic
-    logger.info(f'Creating browse image of ZTD at {height}m altitude.')
+    logger.info(f"Creating browse image of ZTD at {height}m altitude.")
 
-    make_browse_image_from_arr(output_filename, ztd, max_dim_allowed, colormap, vmin, vmax)
+    make_browse_image_from_arr(
+        output_filename, ztd, max_dim_allowed, colormap, vmin, vmax
+    )

@@ -58,14 +58,12 @@ def pack_ztd(
     hydrostatic_ztd = hydrostatic_ztd.astype(TROPO_PRODUCTS.hydrostatic_delay.dtype)
     zs = zs.astype("float64")
 
-    # Rounding, 
+    # Rounding,
     if keep_bits:
+        round_mantissa(wet_ztd, keep_bits=TROPO_PRODUCTS.wet_delay.keep_bits)
         round_mantissa(
-                wet_ztd,
-                keep_bits=int(TROPO_PRODUCTS.wet_delay.keep_bits))
-        round_mantissa(
-                hydrostatic_ztd,
-                keep_bits=int(TROPO_PRODUCTS.hydrostatic_delay.keep_bits))
+            hydrostatic_ztd, keep_bits=TROPO_PRODUCTS.hydrostatic_delay.keep_bits
+        )
 
     ds = xr.Dataset(
         data_vars={

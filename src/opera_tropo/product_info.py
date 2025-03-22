@@ -120,8 +120,8 @@ class ProductInfo:
     fillvalue: DTypeLike
     missing_value: DTypeLike
     dtype: DTypeLike
+    keep_bits: int
     attrs: dict[str, str] = field(default_factory=dict)
-    keep_bits: int | None = None
 
     def to_dict(self):
         """Convert to dictionary."""

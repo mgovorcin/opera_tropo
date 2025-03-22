@@ -17,7 +17,7 @@ worker_settings:
   #   Type: array.
   block_shape:
     - 128
-    - 128 
+    - 128
 
 
 output_options:

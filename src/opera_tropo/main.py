@@ -71,7 +71,7 @@ def run(
     # NOTE: not succeded in supressing it with logging
     for handler in raider_log.handlers:
         if isinstance(handler, logging.FileHandler):
-            logger.debug(f' Removing RAIDER logs: {handler.baseFilename}')
+            logger.debug(f" Removing RAIDER logs: {handler.baseFilename}")
             Path(handler.baseFilename).unlink(missing_ok=True)
 
     # Generate output browse image
