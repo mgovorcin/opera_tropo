@@ -175,7 +175,7 @@ def round_mantissa(z: np.ndarray, keep_bits=10):
     b &= mask
 
 
-def round_mantissa_xr(data, keep_bits=10):
+def _round_mantissa_xr(data, keep_bits=10):
     """Round the mantissa of a floating-point xarray DataArray.
 
     This function modifies only floating-point arrays, ensuring that integer
@@ -199,3 +199,22 @@ def round_mantissa_xr(data, keep_bits=10):
     if np.issubdtype(data.dtype, np.floating):
         round_mantissa(data, keep_bits)
     return data
+
+def rounding_mantissa_blocks(ds: xr.DataArray, keep_bits: int):
+    """Round the mantissa blocks of a given xr.DataArray.
+
+    Parameters
+    ----------
+    ds : xr.DataArray
+        The input xr.DataArray to process.
+    keep_bits : int
+        The number of bits to keep in the mantissa blocks.
+
+    Returns
+    -------
+    xr.DataArray
+        The processed xr.DataArray with rounded mantissa blocks.
+
+    """
+    return ds.map(_round_mantissa_xr, keep_bits=keep_bits)
+

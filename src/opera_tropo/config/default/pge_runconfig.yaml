@@ -16,7 +16,7 @@ product_path_group:
   product_path: output/historical
   # Path to the scratch directory.
   #   Type: string.
-  scratch_path: golden_output
+  scratch_path: scratch
   # Path to the SAS output directory.
   #   Type: string.
   sas_output_path: output/historical
@@ -35,10 +35,7 @@ worker_settings:
   threads_per_worker: 2
   # Max memory to use per worker in GB.
   #   Type: integer.
-  max_memory: 8
-  # Dask local spill directory
-  #   Type: string.
-  dask_temp_dir: tmp
+  max_memory: 8GB 
   # Size (rows, columns) of blocks of data to load at a time.
   #   Type: array.
   block_shape:
@@ -47,9 +44,6 @@ worker_settings:
 
 
 output_options:
-  # Output height levels for ZTD, if empty use default HRES 145 levels.
-  #   Type: list.
-  output_heights: []
   # Level of compression applied to netcdf
   #   Type: dict.
   compression_kwargs:

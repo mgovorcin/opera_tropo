@@ -4,9 +4,6 @@ import xarray as xr
 from .product_info import GLOBAL_ATTRS, TROPO_PRODUCTS
 from .utils import round_mantissa
 
-# NOTE: check if it is better to add attributes at the end to
-#       leave this empty and more light
-
 
 def pack_ztd(
     wet_ztd: np.ndarray,
@@ -61,15 +58,14 @@ def pack_ztd(
     hydrostatic_ztd = hydrostatic_ztd.astype(TROPO_PRODUCTS.hydrostatic_delay.dtype)
     zs = zs.astype("float64")
 
-    # Rounding
+    # Rounding, 
     if keep_bits:
-        if TROPO_PRODUCTS.wet_delay.keep_bits:
-            round_mantissa(wet_ztd, keep_bits=int(TROPO_PRODUCTS.wet_delay.keep_bits))
-        if TROPO_PRODUCTS.hydrostatic_delay.keep_bits:
-            round_mantissa(
+        round_mantissa(
+                wet_ztd,
+                keep_bits=int(TROPO_PRODUCTS.wet_delay.keep_bits))
+        round_mantissa(
                 hydrostatic_ztd,
-                keep_bits=int(TROPO_PRODUCTS.hydrostatic_delay.keep_bits),
-            )
+                keep_bits=int(TROPO_PRODUCTS.hydrostatic_delay.keep_bits))
 
     ds = xr.Dataset(
         data_vars={

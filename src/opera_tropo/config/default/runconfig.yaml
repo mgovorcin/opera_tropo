@@ -12,34 +12,31 @@ worker_settings:
   threads_per_worker: 2
   # Max memory to use per worker in GB.
   #   Type: integer.
-  max_memory: 16GB
-  # Dask local spill directory
-  #   Type: string | null.
-  dask_temp_dir: tmp
+  max_memory: 8GB
   # Size (rows [lat], columns [lon]) of blocks of data to load at a time.
   #   Type: array.
   block_shape:
     - 128
-    - 256
+    - 128 
 
 
 output_options:
-  # Output height levels for ZTD, if empty use default HRES 145 levels.
+  # Output height levels for ZTD, if empty use RAiDER HRES 145 levels.
   #   Type: list.
-  #output_heights: []
+  output_heights: []
   # Level of compression applied to netcdf
   #   Type: dict.
   compression_kwargs:
     zlib: true
     complevel: 5
     shuffle: true
-  # Chunk size of output netcdf
+  # Chunk size of output netcdf [time, height, lat, lon].
   #   Type: array.
   chunk_size:
     - 1
-    - 8
-    - 512
-    - 512
+    - 64
+    - 64
+    - 64
 
 # Path to the output log file in addition to logging to stderr.
 #   Type: string | null.

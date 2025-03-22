@@ -78,7 +78,7 @@ class OutputOptions(BaseModel, extra="forbid"):
     )
 
     chunk_size: tuple[int, int, int, int] = Field(
-        (1, 8, 512, 512),
+        (1, 64, 64, 64),
         description="Ouput chunks (time, height, lat, lon).",
     )
 
@@ -118,23 +118,23 @@ class WorkerSettings(BaseModel, extra="forbid"):
     n_workers: int = Field(
         4,
         ge=1,
-        description=("Number of workers to use in dask.Client."),
+        description="Number of workers to use in dask.Client.",
     )
     threads_per_worker: int = Field(
         2,
         ge=1,
-        description=("Number of threads to use per worker in dask.Client"),
+        description="Number of threads to use per worker in dask.Client.",
     )
     max_memory: int | str = Field(
-        default="16GB",
-        description=("Workers are given a target memory limit in dask.Client"),
+        default="6GB",
+        description="Workers are given a target memory limit in dask.Client.",
     )
     dask_temp_dir: str | Path = Field(
         "tmp",
         description=("Dask local spill directory."),
     )
     block_shape: tuple[int, int] = Field(
-        (128, 256),
+        (128, 128),
         description="Size (rows, columns) of blocks of data to load at a time.",
     )
 

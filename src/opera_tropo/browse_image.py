@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from os import PathLike
 from typing import TYPE_CHECKING, Union
 
@@ -21,8 +22,9 @@ else:
 PathOrStr = Union[str, PathLikeStr]
 Filename = PathOrStr
 
-DEFAULT_CMAP = cmap.Colormap("arctic_r").to_mpl()
 
+# Logger setup
+logger = logging.getLogger(__name__)
 
 def _resize_to_max_pixel_dim(arr: ArrayLike, max_dim_allowed=2048) -> np.ndarray:
     """Scale shape of a given array."""
@@ -38,30 +40,31 @@ def _resize_to_max_pixel_dim(arr: ArrayLike, max_dim_allowed=2048) -> np.ndarray
 
 
 def _save_to_disk_as_color(
-    arr: ArrayLike, fname: Filename, cmap: str, vmin: float, vmax: float
+    arr: ArrayLike, fname: Filename, colormap: str, vmin: float, vmax: float
 ) -> None:
     """Save image array as color to file."""
-    plt.imsave(fname, arr, cmap=cmap, vmin=vmin, vmax=vmax)
+    colormap = cmap.Colormap(colormap).to_mpl() # get matplotlib cmap
+    plt.imsave(fname, arr, cmap=colormap, vmin=vmin, vmax=vmax)
 
 
 def make_browse_image_from_arr(
     output_filename: Filename,
     arr: ArrayLike,
     max_dim_allowed: int = 2048,
-    cmap: str = DEFAULT_CMAP,
+    colormap: str = "arctic_r",
     vmin: float = -0.10,
     vmax: float = 0.10,
 ) -> None:
     """Create a PNG browse image for the output product from given array."""
     arr = _resize_to_max_pixel_dim(arr, max_dim_allowed)
-    _save_to_disk_as_color(arr, output_filename, cmap, vmin, vmax)
+    _save_to_disk_as_color(arr, output_filename, colormap, vmin, vmax)
 
 
 def make_browse_image_from_nc(
     output_filename: Filename,
     input_filename: Filename,
     max_dim_allowed: int = 2048,
-    cmap: str = DEFAULT_CMAP,
+    colormap: str = "arctic_r",
     vmin: float = 1.9,
     vmax: float = 2.5,
     height: float = 800,
@@ -73,7 +76,8 @@ def make_browse_image_from_nc(
         hydrostatic = (
             ds.hydrostatic_delay.isel(time=0).sel(height=height, method="nearest").data
         )
-
+    # Get total zenith tropo delay
     ztd = wet + hydrostatic
+    logger.info(f'Creating browse image of ZTD at {height}m altitude.')
 
-    make_browse_image_from_arr(output_filename, ztd, max_dim_allowed, cmap, vmin, vmax)
+    make_browse_image_from_arr(output_filename, ztd, max_dim_allowed, colormap, vmin, vmax)

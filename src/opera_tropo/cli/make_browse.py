@@ -3,7 +3,6 @@ from __future__ import annotations
 import functools
 
 import click
-from cmap import Colormap
 
 __all__ = ["make_browse"]
 # Always show defaults
@@ -30,7 +29,6 @@ def make_browse(out_fname, in_fname, max_img_dim, cmap, vmin, vmax, height):
     if out_fname is None:
         out_fname = in_fname.replace(".nc", ".png")
 
-    cmap = Colormap(cmap).to_mpl()
     opera_tropo.browse_image.make_browse_image_from_nc(
         out_fname, in_fname, max_img_dim, cmap, vmin, vmax, height
     )

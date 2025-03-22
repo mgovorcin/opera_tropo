@@ -1,4 +1,3 @@
-import logging
 from typing import Optional
 
 import numpy as np
@@ -6,9 +5,6 @@ import xarray as xr
 from RAiDER.models import HRES
 
 from opera_tropo._pack import pack_ztd
-from opera_tropo.log.loggin_setup import log_runtime
-
-logger = logging.getLogger(__name__)
 
 
 def get_ztd(
@@ -104,7 +100,7 @@ def get_ztd(
 
     return out_ds
 
-@log_runtime
+
 def calculate_ztd(
     ds: xr.Dataset,
     out_heights: Optional[list] = None,
@@ -143,7 +139,7 @@ def calculate_ztd(
         - Coordinates: 'latitude', 'longitude', 'height'.
 
     """
-    # Get ZTD from weather model dataset
+    # Get ZTD
     ztd_ds = get_ztd(
         lat=ds.latitude.values,
         lon=ds.longitude.values,
@@ -153,12 +149,11 @@ def calculate_ztd(
         lnsp=ds.lnsp.isel(time=0, level=0).values,
     )
 
-    # Interpolate to specified output heights if provided
+    # Interpolate to output heights
     if out_heights is not None:
         ztd_ds = ztd_ds.interp(height=out_heights, method="cubic")
 
-   # Package and round results using `pack_ztd` using
-   # product_info.TropoProducts
+    # Packaging and rounding using product_info
     ztd_ds = pack_ztd(
         wet_ztd=ztd_ds.wet_ztd.values,
         hydrostatic_ztd=ztd_ds.hydrostatic_ztd.values,

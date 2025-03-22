@@ -2,20 +2,17 @@ from __future__ import annotations
 
 import logging
 import shutil
-import time
 from pathlib import Path
 from typing import Optional
 
+import dask.array as da
 import numpy as np
-import psutil
 import xarray as xr
 from dask.distributed import Client
 
 from opera_tropo._pack import pack_ztd
 from opera_tropo.checks import validate_input
 from opera_tropo.core import calculate_ztd
-from opera_tropo.product_info import TROPO_PRODUCTS
-from opera_tropo.utils import round_mantissa_xr
 
 try:
     from RAiDER.models.model_levels import A_137_HRES, LEVELS_137_HEIGHTS
@@ -25,26 +22,10 @@ except ImportError as e:
 logger = logging.getLogger(__name__)
 
 BLOCK_SIZE = [128, 256]  # lat, lon
+DEFAULT_COMPRESSION = {"zlib": True,
+                       "complevel": 4,
+                       "shuffle": True}
 OUTPUT_CHUNKS = [1, 8, 512, 512]  # time, height, lat, lon
-
-
-def _rounding_mantissa_blocks(ds: xr.DataArray, keep_bits: int):
-    """Round the mantissa blocks of a given xr.DataArray.
-
-    Parameters
-    ----------
-    ds : xr.DataArray
-        The input xr.DataArray to process.
-    keep_bits : int
-        The number of bits to keep in the mantissa blocks.
-
-    Returns
-    -------
-    xr.DataArray
-        The processed xr.DataArray with rounded mantissa blocks.
-
-    """
-    return ds.map(round_mantissa_xr, keep_bits=keep_bits)
 
 
 def tropo(
@@ -52,16 +33,15 @@ def tropo(
     output_file: str,
     *,
     max_height: int = 81000,
-    out_heights: Optional[list[float]] = None,
+    out_heights: Optional[list[float] | np.ndarray] = None,
     block_size: list[int] = BLOCK_SIZE,
     out_chunk_size: list[int] = OUTPUT_CHUNKS,
     num_workers: int = 4,
     num_threads: int = 2,
     max_memory: int | str = "16GB",
-    compression_options: dict = {},
+    compression_options: dict = DEFAULT_COMPRESSION,
     temp_dir: Optional[str] = None,
     pre_check: bool = True,
-    keep_bits: bool = True,
 ) -> None:
     """Run troposphere workflow.
 
@@ -91,8 +71,6 @@ def tropo(
         Directory for temporary files. Default is None.
     pre_check : bool, optional
         Whether to perform pre-check of input data. Default is True.
-    keep_bits : bool, optional
-        Whether to preserve bit depth in the output. Default is True.
 
     Returns
     -------
@@ -104,7 +82,6 @@ def tropo(
         If the input dataset file cannot be opened or processed.
 
     """
-    process = psutil.Process()
     logger.info("Calculating TROPO delay")
     # Set default compression options if not provided
     encoding_defaults = {
@@ -164,7 +141,7 @@ def tropo(
     else:
         zlevels = np.flipud(LEVELS_137_HEIGHTS)
 
-    out_size = np.empty((cols, rows, len(zlevels)), dtype=np.float32)
+    out_size = da.empty((cols, rows, len(zlevels)), dtype=np.float32)
 
     # To skip interpolation if out_heights are same as default
     if np.array_equal(out_heights, np.flipud(LEVELS_137_HEIGHTS)):
@@ -188,43 +165,27 @@ def tropo(
     )
 
     # Calculate ZTD
-    # NOTE: Peak in RAM is 40GB after ingesting map_block output
-    # with default 145 height level, specifying out_heights can
-    # lower mem usage
-    mem = process.memory_info().rss / 1e9
-    logger.info(f"Estimating ZTD delay, mem: {mem:.2f}GB")
-    t1 = time.time()
+    model_time_str = ds.time.dt.strftime("%Y%m%dT%H").values
+    logger.info(f"Estimating ZTD delay for {model_time_str}")
     out_ds = ds.map_blocks(
-        calculate_ztd, kwargs={"out_heights": out_heights}, template=template
-    ).compute()
-    t2 = time.time()
-    mem = process.memory_info().rss / 1e9
-    logger.info(f"ZTD took {t2 - t1:.2f}s, mem: {mem:.2f}GB")
+        calculate_ztd, kwargs={"out_heights": out_heights},template=template
+    )
 
-    # Clean up
-    ds.close()
-    del template, ds
+    # Define output encoding: compression and chunk size
+    encoding = dict.fromkeys(out_ds.data_vars, encoding)
 
-    # Note, apply again rounding as interpolation can change
-    # output, double check if needed
-    if out_heights is not None and len(out_heights) > 0 and keep_bits:
-        # use one keep_bits setting, need to figure how to apply
-        # different rounding for each data_var in xr.Dataset
-        keep_bit_kwargs = {"keep_bits": TROPO_PRODUCTS.wet_delay.keep_bits}
-        out_ds = out_ds.map_blocks(_rounding_mantissa_blocks, kwargs=keep_bit_kwargs)
-
-    # Save and compress output
-    t1 = time.time()
-    msg = "and Compressing" if encoding["zlib"] else ""
-    encoding = {var: encoding for var in out_ds.data_vars}
-    # Reoder longitude indexes to adjust for 0-360  transform to -180-180
+    # Reorder longitude indexes to adjust for 0-360  transform to -180-180
     out_ds = out_ds.sortby("longitude")
-    logger.debug(f"Saving file: {output_file}")
+    logger.debug(f"Output file: {output_file}")
+    logger.debug(("Output chunksize (time, height, latitude, longitude):"
+                  f" {out_chunk_size}"))
+
+    # Save output to local file
     out_ds.sel(height=slice(None, max_height)).to_netcdf(
         output_file, encoding=encoding, mode="w"
     )
-    t2 = time.time()
-    mem = process.memory_info().rss / 1e9
-    logger.info(f"Saving {msg} took {t2 - t1:.2f}s, mem: {mem:.2f}GB")
+    # Close dask Client and remove dask temp. spill directory
+    logger.debug("Dask server link")
     client.close()
+    logger.debug(f"Removing dask tmp dir: {temp_dir}")
     shutil.rmtree(str(temp_dir))
