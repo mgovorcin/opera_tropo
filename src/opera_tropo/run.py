@@ -184,7 +184,7 @@ def tropo(
         output_file, encoding=encoding, mode="w"
     )
     # Close dask Client and remove dask temp. spill directory
-    logger.debug(f"Closing dask server: {client.scheduler.address}.")
+    logger.debug(f"Closing dask server: {client.dashboard_link.split('/')[2]}.")
     client.close()
     logger.debug(f"Removing dask tmp dir: {temp_dir}")
     shutil.rmtree(str(temp_dir))
