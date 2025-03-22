@@ -110,6 +110,7 @@ def calculate_ztd(
     ds: xr.Dataset,
     out_heights: Optional[list] = None,
     chunk_size: Optional[list] = None,
+    keep_bits: bool = True,
 ) -> xr.Dataset:
     """Compute the Zenith Total Delay (ZTD) from an input weather model dataset.
 
@@ -134,6 +135,9 @@ def calculate_ztd(
 
     chunk_size : Optional[list], default=None
         List specifying the chunk size for output dataset processing.
+
+    keep_bits : bool, default=True
+        Do mantissa rounding with bit range defind in product_info.
 
     Returns
     -------
@@ -168,6 +172,7 @@ def calculate_ztd(
         zs=ztd_ds.height,
         model_time=ds.time.data,
         chunk_size=chunk_size,
+        keep_bits=keep_bits,
     )
 
     return ztd_ds
