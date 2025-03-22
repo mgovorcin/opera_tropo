@@ -3,7 +3,7 @@ from numpy.testing import assert_allclose
 
 from opera_tropo.core import calculate_ztd
 from opera_tropo.product_info import TropoProducts
-from opera_tropo.utility import rounding_mantissa_blocks
+from opera_tropo.utils import rounding_mantissa_blocks
 
 
 def test_wet_delay(load_input_model, load_golden_output):
