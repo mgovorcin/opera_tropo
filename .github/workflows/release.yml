@@ -1,9 +1,6 @@
 name: Release Workflow
 
-on:
-  push:
-    tags:
-      - "v*"  # Run only on tag pushes starting with 'v'
+on: [push]
 
 jobs:
   check-tag:
