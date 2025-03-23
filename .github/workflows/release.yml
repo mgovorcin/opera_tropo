@@ -1,0 +1,30 @@
+name: Release Workflow
+
+on:
+  push:
+    tags:
+      - "v*"  # Run only on tag pushes starting with 'v'
+
+jobs:
+  check-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Tag Version
+        run: |
+          TAG_NAME="${GITHUB_REF#refs/tags/}"  # Extract tag (e.g., v1.2.3 -> 1.2.3)
+          VERSION_TAG="${TAG_NAME#v}"  # Remove leading 'v' if present
+          PRODUCT_NAME="opera_tropo"
+
+          echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+          echo "PRODUCT_NAME=$PRODUCT_NAME" >> $GITHUB_ENV
+
+          echo "✅ Detected Version: $VERSION_TAG"
+          echo "✅ Product Name: $PRODUCT_NAME"
+
+      - name: Use extracted values
+        run: |
+          echo "Using Product: $PRODUCT_NAME"
+          echo "Version: $VERSION_TAG"
