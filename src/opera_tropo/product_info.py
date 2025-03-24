@@ -11,26 +11,28 @@ from RAiDER import __version__
 GLOBAL_ATTRS = {
     # http://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html#standard-name
     "Conventions": "CF-1.8",
-    "title": "OPERA_L4_ZENITH_TROPO",
+    "title": "OPERA_L4_TROPO-ZENITH",
     "institution": "NASA Jet Propulsion Laboratory (JPL)",
     "contact": "opera-sds-ops@jpl.nasa.gov",
     "source": "ECMWF",
     "platform": "Model High Resolution 15-day Forecast (HRES)",
-    "spatial_resolution": "0.1deg (~9km)",
+    "spatial_resolution": "~0.07deg",
     "temporal_resolution": "6h",
     "source_url": "https://www.ecmwf.int/en/forecasts/datasets/set-i",
     "references": "https://raider.readthedocs.io/en/latest/",
     "mission_name": "OPERA",
     "description": (
-        "OPERA One-way Tropospheric Zenith Delay for Synthetic Aperture Radar"
+        "OPERA One-way Tropospheric Zenith-integrated Delay"
+        " for Synthetic Aperture Radar"
     ),
     "comment": (
         "Intersect/interpolate"
-        " with DEM and multiple with -4pi/radar wavelength (2 way)"
-        " to get SAR correction"
+        " with DEM, project to slant range and multiple with "
+        "-4pi/radar wavelength (2 way) to get SAR correction"
     ),
     "software": "RAiDER",
     "software_version": f"{__version__}",
+    "reference_document": "TBD",
     # Audit trail. date/time 0f day/ user name/ program name/command arguments
     "history": f"Created on: {str(datetime.now(timezone.utc))}",
 }
@@ -147,7 +149,7 @@ class TropoProducts:
         default_factory=lambda: ProductInfo(
             name="wet_delay",
             long_name="Zenith Wet Delay",
-            description=("One-way Zenith Wet Delay."),
+            description=("One-way Zenith-integrated Wet Delay."),
             fillvalue=9.96921e36,
             missing_value=9.96921e36,
             # Note sure should I keep grid_mapping here
@@ -163,7 +165,7 @@ class TropoProducts:
         default_factory=lambda: ProductInfo(
             name="hydrostatic_delay",
             long_name="Zenith Hydrostatic Delay",
-            description=("One-way Zenith Wet Delay."),
+            description=("One-way Zenith-integrated Wet Delay."),
             fillvalue=9.96921e36,
             missing_value=9.96921e36,
             # Note sure should I keep grid_mapping here
